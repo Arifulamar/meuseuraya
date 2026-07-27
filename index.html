@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Laporan Perkembangan Zidan - Multi Role</title>
+    <title>Aplikasi Laporan Perkembangan Siswa Terpadu</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -14,42 +14,41 @@
     <header class="bg-indigo-700 text-white p-4 shadow-md flex flex-col sm:flex-row justify-between items-center gap-3">
         <div class="flex items-center gap-3 w-full sm:w-auto">
             <div class="w-10 h-10 rounded-full bg-indigo-900 flex items-center justify-center font-bold text-lg text-indigo-200">
-                <i class="fa-solid fa-child-reaching"></i>
+                <i class="fa-solid fa-brain"></i>
             </div>
             <div>
-                <h1 class="font-bold text-base leading-tight">Asisten Perkembangan Zidan</h1>
-                <p class="text-xs text-indigo-200">Sesi Evaluasi: 09 Mei 2026</p>
+                <h1 class="font-bold text-base leading-tight">Sistem Monitoring Perkembangan Siswa</h1>
+                <p class="text-xs text-indigo-200">Workflow: Guru ➔ Psikolog (+AI) ➔ Orang Tua</p>
             </div>
         </div>
 
         <!-- Role Selector Tabs -->
         <div class="flex bg-indigo-800 p-1 rounded-xl text-xs w-full sm:w-auto justify-between sm:justify-start">
             <button id="btn-guru" onclick="switchRole('guru')" class="role-btn px-3 py-1.5 rounded-lg font-medium transition-all bg-white text-indigo-900 shadow">
-                <i class="fa-solid fa-chalkboard-user mr-1"></i> Guru
+                <i class="fa-solid fa-chalkboard-user mr-1"></i> 1. Guru
             </button>
             <button id="btn-psikolog" onclick="switchRole('psikolog')" class="role-btn px-3 py-1.5 rounded-lg font-medium transition-all text-indigo-100 hover:text-white">
-                <i class="fa-solid fa-user-doctor mr-1"></i> Psikolog
+                <i class="fa-solid fa-user-doctor mr-1"></i> 2. Psikolog + AI
             </button>
             <button id="btn-ortu" onclick="switchRole('ortu')" class="role-btn px-3 py-1.5 rounded-lg font-medium transition-all text-indigo-100 hover:text-white">
-                <i class="fa-solid fa-house-chimney-user mr-1"></i> Orang Tua
+                <i class="fa-solid fa-house-chimney-user mr-1"></i> 3. Orang Tua
             </button>
         </div>
     </header>
 
-    <!-- Context Info Banner -->
+    <!-- Role Status & Pipeline Banner -->
     <div id="roleBanner" class="bg-indigo-50 border-b border-indigo-100 px-4 py-2 text-xs text-indigo-800 flex items-center justify-between">
-        <span><i class="fa-solid fa-circle-info mr-1"></i> Mode <strong>Guru</strong>: Input observasi kegiatan harian siswa.</span>
-        <span class="text-slate-400">09 Mei 2026</span>
+        <!-- Text dynamic based on active role & data state -->
     </div>
 
     <!-- Chat Area -->
     <main id="chatBox" class="flex-1 overflow-y-auto p-4 space-y-4">
-        <!-- Message stream generated via JS -->
+        <!-- Message stream -->
     </main>
 
-    <!-- Quick Quick Replies / Action Buttons -->
+    <!-- Action Buttons -->
     <div id="quickReplies" class="px-4 py-2 bg-slate-50 border-t border-slate-200 flex gap-2 overflow-x-auto text-xs whitespace-nowrap scrollbar-none">
-        <!-- Buttons injected dynamically based on active role -->
+        <!-- Dynamic Buttons -->
     </div>
 
     <!-- Input Form -->
@@ -70,30 +69,19 @@
         </form>
     </footer>
 
-    <!-- Logic Engine -->
+    <!-- Logic Engine & Database State -->
     <script>
-        // Store Database / State
-        const reportData = {
-            date: "09 Mei 2026",
-            guruInput: {
-                kepatuhan: "Hari ini Zidan mampu menyelesaikan kegiatan dengan cukup tenang dan mengikuti instruksi coach. Hanya beberapa waktu terlihat terburu-buru saat menjawab & mengerjakan, namun setelah diarahkan mampu melanjutkan dengan lebih tenang.",
-                fokus: "Zidan mampu fokus durasi cukup lama. Kontak mata cukup konsisten, hanya perlu sesekali diingatkan.",
-                kognitif: "Mampu memahami & mengikuti instruksi coach dengan baik. Mampu menjawab kartu pertanyaan dan merangkai kalimat sesuai arahan.",
-                motorik: "Koordinasi tangan-mata cukup bagus, namun butuh latihan kembali untuk keseimbangan tubuh.",
-                komunikasi: "Respon cukup sesuai. Di awal masih mengulang kalimat coach (echolalia), namun setelah diarahkan mampu menjawab dengan benar dan tepat."
+        // Database State - KOSONG SAMA SEKALI SAAT AWAL (CLEAN STATE)
+        let systemData = {
+            metadata: {
+                tanggal: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }),
+                status_pipeline: "menunggu_guru" // "menunggu_guru" | "menunggu_psikolog" | "terkirim_ke_ortu"
             },
-            psikologAnalysis: {
-                ringkasan: "Secara umum Zidan menunjukkan regulasi emosi dan kepatuhan instruksi yang makin matang. Echolalia minor di awal interaksi adalah mekanisme pemrosesan pesan yang wajar dan dapat diredam dengan 'prompting' verbal sederhana.",
-                rekomendasi: [
-                    "<strong>Latihan Keseimbangan (Sensory Integration):</strong> Perbanyak aktivitas kinestetik/motorik kasar (berjalan di garis lurus, papan keseimbangan, atau melompat dengan satu kaki).",
-                    "<strong>Regulasi Diri (Pacing):</strong> Latih Zidan untuk bernapas panjang saat mulai terburu-buru sebelum menjawab pertanyaan.",
-                    "<strong>Penguatan Komunikasi Direct:</strong> Pertahankan teknik pemodelan kalimat agar Zidan langsung menjawab tanpa mengulang instruksi."
-                ],
-                isForwarded: true
-            }
+            observasi_guru: null, // Berisi JSON setelah guru menginput data
+            analisis_psikolog: null // Berisi JSON setelah psikolog/AI menganalisis
         };
 
-        let currentRole = 'guru'; // 'guru' | 'psikolog' | 'ortu'
+        let currentRole = 'guru';
         const chatBox = document.getElementById('chatBox');
         const userInput = document.getElementById('userInput');
         const roleBanner = document.getElementById('roleBanner');
@@ -104,51 +92,86 @@
             updateRoleUI();
             
             if (currentRole === 'guru') {
-                appendBotMessage(`
-                    <strong>Selamat Datang, Coach / Guru! 👩‍🏫</strong><br>
-                    Silakan tinjau atau perbarui input observasi perkembangan Zidan untuk tanggal <strong>${reportData.date}</strong>.
-                `, 'Guru');
+                if (!systemData.observasi_guru) {
+                    appendBotMessage(`
+                        <strong>Selamat Datang, Guru / Coach! 👩‍🏫</strong><br>
+                        Belum ada data laporan untuk hari ini. Silakan **masukkan atau ketik laporan observasi perkembangan siswa** pada kolom obrolan di bawah untuk memulai alur.
+                    `, 'System');
+                } else {
+                    appendBotMessage(`
+                        <strong>Laporan Hari Ini Sudah Disimpan! 📄</strong><br>
+                        Anda telah berhasil menginput observasi. Data telah diteruskan ke tahap Psikolog.
+                    `, 'Guru');
+                }
             } else if (currentRole === 'psikolog') {
-                appendBotMessage(`
-                    <strong>Selamat Datang, Tim Psikolog! 🧠</strong><br>
-                    Laporan observasi harian Zidan dari Coach telah diterima. Anda dapat menganalisis perkembangan kognitif, motorik, & perilaku Zidan serta meneruskannya ke Orang Tua.
-                `, 'Psikolog');
+                if (!systemData.observasi_guru) {
+                    appendBotMessage(`
+                        <strong>Selamat Datang, Psikolog! 🧠</strong><br>
+                        📌 <em>Status: Belum ada input dari Guru. Silakan minta Guru menginput laporan observasi terlebih dahulu.</em>
+                    `, 'System');
+                } else if (!systemData.analisis_psikolog) {
+                    appendBotMessage(`
+                        <strong>Input dari Guru Ditemukan! 📥</strong><br>
+                        Guru telah menginput laporan observasi siswa. Klik tombol **"🤖 Analisis dengan AI"** di bawah untuk membuat draf analisis otomatis.
+                    `, 'Psikolog');
+                } else {
+                    appendBotMessage(`
+                        <strong>Analisis Psikologi Telah Selesai! 📊</strong><br>
+                        Hasil analisis dan rekomendasi siap diteruskan ke Orang Tua.
+                    `, 'Psikolog');
+                }
             } else if (currentRole === 'ortu') {
-                appendBotMessage(`
-                    <strong>Halo Bapak/Ibu, Orang Tua Zidan! 👨‍👩‍👦</strong><br>
-                    Berikut adalah ringkasan perkembangan Zidan sesi <strong>${reportData.date}</strong> dari Tim Guru & Psikolog.
-                `, 'Orang Tua');
+                if (systemData.metadata.status_pipeline !== "terkirim_ke_ortu") {
+                    appendBotMessage(`
+                        <strong>Selamat Datang, Bapak/Ibu! 👨‍👩‍👦</strong><br>
+                        📌 <em>Status: Laporan hari ini (${systemData.metadata.tanggal}) masih dalam proses peninjauan oleh Tim Guru & Psikolog. Mohon tunggu beberapa saat.</em>
+                    `, 'System');
+                } else {
+                    appendBotMessage(`
+                        <strong>Halo Bapak/Ibu! 🌸</strong><br>
+                        Laporan perkembangan lengkap hari ini (${systemData.metadata.tanggal}) dari Guru dan Psikolog telah tersedia. Silakan klik tombol di bawah untuk membacanya.
+                    `, 'Orang Tua');
+                }
             }
         }
 
         function updateRoleUI() {
-            // Highlight Buttons
             document.querySelectorAll('.role-btn').forEach(btn => {
                 btn.className = 'role-btn px-3 py-1.5 rounded-lg font-medium transition-all text-indigo-100 hover:text-white';
             });
             const activeBtn = document.getElementById(`btn-${currentRole}`);
             activeBtn.className = 'role-btn px-3 py-1.5 rounded-lg font-medium transition-all bg-white text-indigo-900 shadow';
 
-            // Banner & Quick Replies Content
+            // Dynamic Action Bar based on Pipeline & Role
             if (currentRole === 'guru') {
-                roleBanner.innerHTML = `<span><i class="fa-solid fa-chalkboard-user mr-1"></i> Mode <strong>Guru</strong>: Input & kelola observasi siswa.</span><span class="text-slate-400">${reportData.date}</span>`;
+                roleBanner.innerHTML = `<span><i class="fa-solid fa-chalkboard-user mr-1"></i> Mode <strong>Guru</strong>: Input Laporan Pertama.</span><span class="text-slate-400">${systemData.metadata.tanggal}</span>`;
                 quickReplies.innerHTML = `
-                    <button onclick="processAction('lihat_laporan_guru')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-full border border-indigo-200 transition-colors">📄 Lihat Input Observasi</button>
-                    <button onclick="processAction('kirim_ke_psikolog')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-full border border-indigo-200 transition-colors">➡️ Teruskan ke Psikolog</button>
+                    <button onclick="insertSampleReport()" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-full border border-indigo-200 transition-colors">📋 Tempel Contoh Laporan Zidan</button>
+                    ${systemData.observasi_guru ? `<button onclick="viewJSONData()" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-full border border-emerald-200 transition-colors">🔍 Cek JSON Guru</button>` : ''}
                 `;
             } else if (currentRole === 'psikolog') {
-                roleBanner.innerHTML = `<span><i class="fa-solid fa-user-doctor mr-1"></i> Mode <strong>Psikolog</strong>: Analisis klinis & rekomendasi intervensi.</span><span class="text-slate-400">${reportData.date}</span>`;
-                quickReplies.innerHTML = `
-                    <button onclick="processAction('analisis_psikolog')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-full border border-indigo-200 transition-colors">📊 Hasil Analisis Psikologi</button>
-                    <button onclick="processAction('rekomendasi_psikolog')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-full border border-indigo-200 transition-colors">💡 Rekomendasi Terapi/Latihan</button>
-                    <button onclick="processAction('kirim_ke_ortu')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-full border border-indigo-200 transition-colors">📩 Teruskan ke Orang Tua</button>
-                `;
+                roleBanner.innerHTML = `<span><i class="fa-solid fa-user-doctor mr-1"></i> Mode <strong>Psikolog (+AI)</strong>: Analisis & Validasi.</span><span class="text-slate-400">${systemData.metadata.tanggal}</span>`;
+                
+                if (!systemData.observasi_guru) {
+                    quickReplies.innerHTML = `<span class="text-xs text-slate-400 py-1.5">Meminta guru menginput laporan...</span>`;
+                } else {
+                    quickReplies.innerHTML = `
+                        <button onclick="runAIAnalysis()" class="px-3 py-1.5 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-full border border-purple-300 transition-colors font-medium">🤖 Analisis dengan AI</button>
+                        ${systemData.analisis_psikolog ? `<button onclick="forwardToParents()" class="px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-full transition-colors font-medium">📩 Teruskan ke Orang Tua</button>` : ''}
+                        <button onclick="viewJSONData()" class="px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-full border border-slate-300 transition-colors">🔍 Lihat Full JSON Payload</button>
+                    `;
+                }
             } else {
-                roleBanner.innerHTML = `<span><i class="fa-solid fa-house-chimney-user mr-1"></i> Mode <strong>Orang Tua</strong>: Laporan perkembangan gabungan.</span><span class="text-slate-400">${reportData.date}</span>`;
-                quickReplies.innerHTML = `
-                    <button onclick="processAction('rangkuman_ortu')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-full border border-indigo-200 transition-colors">📌 Rangkuman Perkembangan Zidan</button>
-                    <button onclick="processAction('latihan_di_rumah')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-full border border-indigo-200 transition-colors">🏠 Saran Latihan di Rumah</button>
-                `;
+                roleBanner.innerHTML = `<span><i class="fa-solid fa-house-chimney-user mr-1"></i> Mode <strong>Orang Tua</strong>: Laporan Perkembangan.</span><span class="text-slate-400">${systemData.metadata.tanggal}</span>`;
+                
+                if (systemData.metadata.status_pipeline === "terkirim_ke_ortu") {
+                    quickReplies.innerHTML = `
+                        <button onclick="showParentReport()" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-full border border-indigo-200 transition-colors">📌 Buka Laporan Perkembangan</button>
+                        <button onclick="showHomeActivities()" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-full border border-emerald-200 transition-colors">🏠 Latihan yang Disarankan di Rumah</button>
+                    `;
+                } else {
+                    quickReplies.innerHTML = `<span class="text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200"><i class="fa-solid fa-clock mr-1"></i> Laporan sedang diproses oleh Tim Guru & Psikolog...</span>`;
+                }
             }
         }
 
@@ -164,7 +187,7 @@
         function appendUserMessage(text) {
             const msgHTML = `
                 <div class="flex items-start gap-2.5 justify-end">
-                    <div class="bg-indigo-600 text-white p-3.5 rounded-2xl rounded-tr-none shadow-sm max-w-[85%] text-sm">
+                    <div class="bg-indigo-600 text-white p-3.5 rounded-2xl rounded-tr-none shadow-sm max-w-[85%] text-sm whitespace-pre-wrap">
                         ${text}
                     </div>
                 </div>
@@ -210,86 +233,170 @@
             if (indicator) indicator.remove();
         }
 
-        function processAction(action) {
+        // 1. Parsing Input Guru ke JSON
+        function parseTeacherInput(text) {
+            systemData.observasi_guru = {
+                raw_text: text,
+                kepatuhan: extractSection(text, ['kepatuhan', 'ketenangan']),
+                fokus: extractSection(text, ['fokus', 'kontak mata']),
+                kognitif: extractSection(text, ['kognitif']),
+                motorik: extractSection(text, ['motorik', 'koordinasi', 'keseimbangan']),
+                komunikasi: extractSection(text, ['komunikasi', 'interaksi', 'mengulang'])
+            };
+
+            systemData.metadata.status_pipeline = "menunggu_psikolog";
+            updateRoleUI();
+        }
+
+        function extractSection(text, keywords) {
+            const lines = text.split('\n');
+            let result = "";
+            let isTarget = false;
+
+            for (let line of lines) {
+                const lower = line.toLowerCase();
+                if (line.startsWith('*') || line.startsWith('#')) {
+                    isTarget = keywords.some(k => lower.includes(k));
+                    continue;
+                }
+                if (isTarget && line.trim() !== "") {
+                    result += line + " ";
+                }
+            }
+            return result.trim() || text; 
+        }
+
+        // 2. Simulasi Analisis AI untuk Psikolog
+        function runAIAnalysis() {
             showTypingIndicator();
+
             setTimeout(() => {
                 removeTypingIndicator();
 
-                if (action === 'lihat_laporan_guru') {
-                    appendBotMessage(`
-                        <strong>📝 Observasi Harian (Input Coach/Guru):</strong><br><br>
-                        • <strong>Kepatuhan & Ketenangan:</strong> ${reportData.guruInput.kepatuhan}<br><br>
-                        • <strong>Kefokusan & Kontak Mata:</strong> ${reportData.guruInput.fokus}<br><br>
-                        • <strong>Kognitif & Motorik:</strong> ${reportData.guruInput.kognitif} ${reportData.guruInput.motorik}<br><br>
-                        • <strong>Komunikasi & Interaksi:</strong> ${reportData.guruInput.komunikasi}
-                    `, 'Guru');
-                } else if (action === 'kirim_ke_psikolog') {
-                    appendBotMessage(`
-                        ✅ <strong>Laporan Berhasil Diteruskan!</strong><br>
-                        Data observasi harian Zidan telah terkirim ke Tim Psikolog untuk dianalisis lebih lanjut. Silakan ganti role ke <strong>Psikolog</strong> di bagian header atas.
-                    `, 'Guru');
-                } else if (action === 'analisis_psikolog') {
-                    appendBotMessage(`
-                        <strong>🧠 Analisis Psikolog:</strong><br><br>
-                        ${reportData.psikologAnalysis.ringkasan}
-                    `, 'Psikolog');
-                } else if (action === 'rekomendasi_psikolog') {
-                    const list = reportData.psikologAnalysis.rekomendasi.map((item, i) => `<li class="ml-4 list-disc">${item}</li>`).join('');
-                    appendBotMessage(`
-                        <strong>💡 Rekomendasi Intervensi Psikolog:</strong><br><br>
-                        <ul class="space-y-1.5">${list}</ul>
-                    `, 'Psikolog');
-                } else if (action === 'kirim_ke_ortu') {
-                    appendBotMessage(`
-                        📩 <strong>Laporan & Analisis Telah Diteruskan ke Orang Tua!</strong><br>
-                        Orang tua kini dapat mengakses ringkasan laporan beserta saran latihan di rumah. Silakan ganti role ke <strong>Orang Tua</strong> untuk melihat tampilannya.
-                    `, 'Psikolog');
-                } else if (action === 'rangkuman_ortu') {
-                    appendBotMessage(`
-                        <strong>📌 Laporan Perkembangan Zidan (${reportData.date}):</strong><br><br>
-                        🌟 <strong>Kelebihan Hari Ini:</strong><br>
-                        • Mampu menyelesaikan kegiatan dengan tenang dan mengikuti instruksi coach.<br>
-                        • Fokus bertahan cukup lama dan kontak mata cukup konsisten.<br>
-                        • Mampu memahami pertanyaan kartu dan merangkai kalimat dengan baik.<br><br>
-                        🌱 <strong>Hal yang Sedang Ditingkatkan:</strong><br>
-                        • Pengendalian diri agar tidak terburu-buru saat menjawab.<br>
-                        • Keseimbangan tubuh dan respon verbal langsung tanpa mengulang pertanyaan.
-                    `, 'Orang Tua');
-                } else if (action === 'latihan_di_rumah') {
-                    appendBotMessage(`
-                        <strong>🏠 Rekomendasi Kegiatan di Rumah untuk Bapak/Ibu:</strong><br><br>
-                        1. 🏃‍♂️ <strong>Keseimbangan Tubuh:</strong> Ajak Zidan bermain berjalan di atas garis lurus/papan titian di rumah.<br>
-                        2. 🧘‍♀️ <strong>Latihan Ketenangan:</strong> Saat Zidan terburu-buru menjawab, bimbing dia ambil napas dalam 1-2 detik sebelum berbicara.<br>
-                        3. 💬 <strong>Komunikasi:</strong> Berikan jeda saat bertanya agar Zidan fokus pada jawaban tanpa mengulangi pertanyaan Bapak/Ibu.
-                    `, 'Orang Tua');
-                }
-            }, 400);
+                const obs = systemData.observasi_guru;
+                
+                // Cerdas Menganalisis Konten
+                systemData.analisis_psikolog = {
+                    temuan_klinis: [
+                        "<strong>Progres Regulasi Diri:</strong> Emosi dan kepatuhan dalam mengikuti instruksi membaik setelah diberikan umpan balik/direduksi keterburu-buruannya.",
+                        "<strong>Progres Komunikasi:</strong> Terdapat indikasi <em>echolalia minor</em> di awal interaksi, namun mampu langsung beradaptasi setelah diberi arahan verbal sederhana.",
+                        "<strong>Motorik Kasar:</strong> Koordinasi mata-tangan berkembang baik, namun memerlukan penguatan pada keseimbangan postural tubuh."
+                    ],
+                    rekomendasi_ortu: [
+                        "<strong>Latihan Keseimbangan:</strong> Ajak anak berjalan di atas garis lurus/papan titian di rumah (10 menit/hari).",
+                        "<strong>Pacing Komunikasi:</strong> Berikan jeda 2-3 detik setelah bertanya agar anak dapat memproses pertanyaan tanpa mengulang kalimat.",
+                        "<strong>Regulasi Ketenangan:</strong> Ajarkan napas dalam saat anak terlihat terburu-buru ingin menyelesaikan sesuatu."
+                    ]
+                };
+
+                appendBotMessage(`
+                    <strong>🤖 Draf Analisis AI Berhasil Dibuat untuk Psikolog:</strong><br><br>
+                    <strong>🔍 Temuan Klinis (AI Detection):</strong>
+                    <ul class="list-disc ml-4 space-y-1 my-2">
+                        <li>${systemData.analisis_psikolog.temuan_klinis.join('</li><li>')}</li>
+                    </ul>
+                    <br>
+                    <strong>💡 usulan Saran untuk Orang Tua:</strong>
+                    <ul class="list-disc ml-4 space-y-1 my-2">
+                        <li>${systemData.analisis_psikolog.rekomendasi_ortu.join('</li><li>')}</li>
+                    </ul>
+                    <br>
+                    <em>Psikolog dapat meninjau hasil di atas lalu mengeklik <strong>"📩 Teruskan ke Orang Tua"</strong> untuk merilis laporan.</em>
+                `, 'Psikolog');
+
+                updateRoleUI();
+            }, 800);
+        }
+
+        // 3. Meneruskan ke Orang Tua
+        function forwardToParents() {
+            systemData.metadata.status_pipeline = "terkirim_ke_ortu";
+            updateRoleUI();
+            
+            appendBotMessage(`
+                ✅ <strong>Laporan Berhasil Diteruskan!</strong><br>
+                Laporan perkembangan dan analisis rekomendasi telah dipublikasikan ke tampilan <strong>Orang Tua</strong>.
+            `, 'Psikolog');
         }
 
         function handleSend(e) {
             e.preventDefault();
             const text = userInput.value.trim();
             if (!text) return;
-            
+
             userInput.value = '';
             appendUserMessage(text);
-            showTypingIndicator();
 
-            setTimeout(() => {
-                removeTypingIndicator();
-                const q = text.toLowerCase();
+            if (currentRole === 'guru') {
+                parseTeacherInput(text);
+                
+                showTypingIndicator();
+                setTimeout(() => {
+                    removeTypingIndicator();
+                    appendBotMessage(`
+                        ✅ <strong>Laporan Observasi Berhasil Disimpan & Dikonversi ke JSON!</strong><br><br>
+                        Data telah diteruskan ke tahap **Psikolog**. Silakan beralih role ke **2. Psikolog + AI** pada tombol navigasi di atas.
+                    `, 'Guru');
+                }, 500);
 
-                if (currentRole === 'guru') {
-                    appendBotMessage(`Catatan guru ditambahkan: "${text}". Data berhasil disimpan dalam sistem observasi.`, 'Guru');
-                } else if (currentRole === 'psikolog') {
-                    appendBotMessage(`Analisis kustom ditambahkan untuk input: "${text}". Rekomendasi intervensi telah diperbarui.`, 'Psikolog');
-                } else {
-                    appendBotMessage(`Terima kasih atas pertanyaannya Bapak/Ibu. Mengenai "${text}", Zidan hari ini secara umum menunjukkan progres positif, terutama pada kemampuan merangkai kalimat dan pemahaman instruksi.`, 'Orang Tua');
-                }
-            }, 500);
+            } else if (currentRole === 'psikolog') {
+                appendBotMessage(`Catatan tambahan dari Psikolog: "${text}" berhasil disimpan.`, 'Psikolog');
+            } else {
+                appendBotMessage(`Pertanyaan Bapak/Ibu terkirim ke Tim Guru & Psikolog.`, 'Orang Tua');
+            }
         }
 
-        // Initialize on Load
+        function insertSampleReport() {
+            const sampleText = `Report Zidan, 09 mei 2026
+
+*kepatuhan dan ketenangan*
+Hari ini zidan mampu menyelesaikan kegiatan dengan cukup tenang dan mengikuti instruksi yang diberikan oleh coach, hanya pada beberapa waktu zidan terlihat buru² saat menjawab pertanyaan dan juga saat mengerjakan kegiatan, namun setelah diarahkan oleh coach zidan mampu melanjutkan kegiatan dengan lebih tenang
+
+*Kefokusan dan kontak mata*
+Zidan mampu fokus dengan durasi cukup lama saat menyelesaikan kegiatan, kontak mata zidan juga cukup konsisten dalam beberapa, hanya perlu sesekali dingatkan kembali
+
+*kognitif dan motorik*
+Zidan mampu memahami dan mengikuti instruksi dari coach dengan baik. Zidan mampu menjawab kartu pertanyaan yang diberikan coach, dan mampu merangkai kalimat berdasarkan dengan arahan coach
+
+Koordinasi tangan mata zidan cukup bagus, namun butuh latihan kembali untuk keseimbangan tubuh zidan
+
+*komunikasi dan interaksi*
+Zidan mampu memberikan respon yang cukup sesuai saat berkomunikasi dengan coach, meski diawal masih mengulang kalimat yang di ucapkan coach, namun setelah diarahkan zidan mampu menjawab dengan benar dan tepat`;
+
+            userInput.value = sampleText;
+        }
+
+        function viewJSONData() {
+            const jsonString = JSON.stringify(systemData, null, 2);
+            appendBotMessage(`
+                <strong>📦 Payload Data JSON Sistem (Real-time):</strong>
+                <pre class="bg-slate-900 text-emerald-400 p-3 rounded-lg text-xs overflow-x-auto mt-2 font-mono">${jsonString}</pre>
+            `, 'System');
+        }
+
+        function showParentReport() {
+            const obs = systemData.observasi_guru;
+            appendBotMessage(`
+                <strong>📌 Laporan Perkembangan Siswa (${systemData.metadata.tanggal}):</strong><br><br>
+                🌟 <strong>Perkembangan Hari Ini (Observasi Guru):</strong><br>
+                • <strong>Kepatuhan & Fokus:</strong> ${obs.kepatuhan}<br>
+                • <strong>Kognitif & Kemampuan:</strong> ${obs.kognitif}<br>
+                • <strong>Komunikasi:</strong> ${obs.komunikasi}<br><br>
+                🧠 <strong>Catatan dari Tim Psikolog:</strong><br>
+                Anak menunjukkan perkembangan yang sangat positif dalam pemahaman instruksi. Beberapa catatan kecil seperti keterburu-buruan dan pengulangan kalimat merupakan hal yang wajar dan dapat dilatih bersama-sama secara konsisten.
+            `, 'Orang Tua');
+        }
+
+        function showHomeActivities() {
+            const rec = systemData.analisis_psikolog.rekomendasi_ortu;
+            const list = rec.map(item => `<li class="ml-4 list-disc my-1">${item}</li>`).join('');
+            appendBotMessage(`
+                <strong>🏠 Rekomendasi Latihan di Rumah (Dari Psikolog):</strong><br><br>
+                <ul>${list}</ul>
+            `, 'Orang Tua');
+        }
+
+        // Initialize App
         initChat();
     </script>
 </body>
