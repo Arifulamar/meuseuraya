@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Laporan Perkembangan Zidan - Multi Role</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-100 h-screen flex flex-col font-sans">
+
+    <!-- Header Chatbot & Role Selector -->
+    <header class="bg-indigo-700 text-white p-4 shadow-md flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+            <div class="w-10 h-10 rounded-full bg-indigo-900 flex items-center justify-center font-bold text-lg text-indigo-200">
+                <i class="fa-solid fa-child-reaching"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-base leading-tight">Asisten Perkembangan Zidan</h1>
+                <p class="text-xs text-indigo-200">Sesi Evaluasi: 09 Mei 2026</p>
+            </div>
+        </div>
+
+        <!-- Role Selector Tabs -->
+        <div class="flex bg-indigo-800 p-1 rounded-xl text-xs w-full sm:w-auto justify-between sm:justify-start">
+            <button id="btn-guru" onclick="switchRole('guru')" class="role-btn px-3 py-1.5 rounded-lg font-medium transition-all bg-white text-indigo-900 shadow">
+                <i class="fa-solid fa-chalkboard-user mr-1"></i> Guru
+            </button>
+            <button id="btn-psikolog" onclick="switchRole('psikolog')" class="role-btn px-3 py-1.5 rounded-lg font-medium transition-all text-indigo-100 hover:text-white">
+                <i class="fa-solid fa-user-doctor mr-1"></i> Psikolog
+            </button>
+            <button id="btn-ortu" onclick="switchRole('ortu')" class="role-btn px-3 py-1.5 rounded-lg font-medium transition-all text-indigo-100 hover:text-white">
+                <i class="fa-solid fa-house-chimney-user mr-1"></i> Orang Tua
+            </button>
+        </div>
+    </header>
+
+    <!-- Context Info Banner -->
+    <div id="roleBanner" class="bg-indigo-50 border-b border-indigo-100 px-4 py-2 text-xs text-indigo-800 flex items-center justify-between">
+        <span><i class="fa-solid fa-circle-info mr-1"></i> Mode <strong>Guru</strong>: Input observasi kegiatan harian siswa.</span>
+        <span class="text-slate-400">09 Mei 2026</span>
+    </div>
+
+    <!-- Chat Area -->
+    <main id="chatBox" class="flex-1 overflow-y-auto p-4 space-y-4">
+        <!-- Message stream generated via JS -->
+    </main>
+
+    <!-- Quick Quick Replies / Action Buttons -->
+    <div id="quickReplies" class="px-4 py-2 bg-slate-50 border-t border-slate-200 flex gap-2 overflow-x-auto text-xs whitespace-nowrap scrollbar-none">
+        <!-- Buttons injected dynamically based on active role -->
+    </div>
+
+    <!-- Input Form -->
+    <footer class="p-3 bg-white border-t border-slate-200">
+        <form id="chatForm" onsubmit="handleSend(event)" class="flex gap-2 items-center">
+            <input 
+                type="text" 
+                id="userInput" 
+                placeholder="Tulis pesan..." 
+                class="flex-1 bg-slate-100 border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                autocomplete="off"
+            />
+            <button 
+                type="submit" 
+                class="bg-indigo-600 hover:bg-indigo-700 text-white w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors shadow-md active:scale-95">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </form>
+    </footer>
+
+    <!-- Logic Engine -->
+    <script>
+        // Store Database / State
+        const reportData = {
+            date: "09 Mei 2026",
+            guruInput: {
+                kepatuhan: "Hari ini Zidan mampu menyelesaikan kegiatan dengan cukup tenang dan mengikuti instruksi coach. Hanya beberapa waktu terlihat terburu-buru saat menjawab & mengerjakan, namun setelah diarahkan mampu melanjutkan dengan lebih tenang.",
+                fokus: "Zidan mampu fokus durasi cukup lama. Kontak mata cukup konsisten, hanya perlu sesekali diingatkan.",
+                kognitif: "Mampu memahami & mengikuti instruksi coach dengan baik. Mampu menjawab kartu pertanyaan dan merangkai kalimat sesuai arahan.",
+                motorik: "Koordinasi tangan-mata cukup bagus, namun butuh latihan kembali untuk keseimbangan tubuh.",
+                komunikasi: "Respon cukup sesuai. Di awal masih mengulang kalimat coach (echolalia), namun setelah diarahkan mampu menjawab dengan benar dan tepat."
+            },
+            psikologAnalysis: {
+                ringkasan: "Secara umum Zidan menunjukkan regulasi emosi dan kepatuhan instruksi yang makin matang. Echolalia minor di awal interaksi adalah mekanisme pemrosesan pesan yang wajar dan dapat diredam dengan 'prompting' verbal sederhana.",
+                rekomendasi: [
+                    "<strong>Latihan Keseimbangan (Sensory Integration):</strong> Perbanyak aktivitas kinestetik/motorik kasar (berjalan di garis lurus, papan keseimbangan, atau melompat dengan satu kaki).",
+                    "<strong>Regulasi Diri (Pacing):</strong> Latih Zidan untuk bernapas panjang saat mulai terburu-buru sebelum menjawab pertanyaan.",
+                    "<strong>Penguatan Komunikasi Direct:</strong> Pertahankan teknik pemodelan kalimat agar Zidan langsung menjawab tanpa mengulang instruksi."
+                ],
+                isForwarded: true
+            }
+        };
+
+        let currentRole = 'guru'; // 'guru' | 'psikolog' | 'ortu'
+        const chatBox = document.getElementById('chatBox');
+        const userInput = document.getElementById('userInput');
+        const roleBanner = document.getElementById('roleBanner');
+        const quickReplies = document.getElementById('quickReplies');
+
+        function initChat() {
+            chatBox.innerHTML = '';
+            updateRoleUI();
+            
+            if (currentRole === 'guru') {
+                appendBotMessage(`
+                    <strong>Selamat Datang, Coach / Guru! 👩‍🏫</strong><br>
+                    Silakan tinjau atau perbarui input observasi perkembangan Zidan untuk tanggal <strong>${reportData.date}</strong>.
+                `, 'Guru');
+            } else if (currentRole === 'psikolog') {
+                appendBotMessage(`
+                    <strong>Selamat Datang, Tim Psikolog! 🧠</strong><br>
+                    Laporan observasi harian Zidan dari Coach telah diterima. Anda dapat menganalisis perkembangan kognitif, motorik, & perilaku Zidan serta meneruskannya ke Orang Tua.
+                `, 'Psikolog');
+            } else if (currentRole === 'ortu') {
+                appendBotMessage(`
+                    <strong>Halo Bapak/Ibu, Orang Tua Zidan! 👨‍👩‍👦</strong><br>
+                    Berikut adalah ringkasan perkembangan Zidan sesi <strong>${reportData.date}</strong> dari Tim Guru & Psikolog.
+                `, 'Orang Tua');
+            }
+        }
+
+        function updateRoleUI() {
+            // Highlight Buttons
+            document.querySelectorAll('.role-btn').forEach(btn => {
+                btn.className = 'role-btn px-3 py-1.5 rounded-lg font-medium transition-all text-indigo-100 hover:text-white';
+            });
+            const activeBtn = document.getElementById(`btn-${currentRole}`);
+            activeBtn.className = 'role-btn px-3 py-1.5 rounded-lg font-medium transition-all bg-white text-indigo-900 shadow';
+
+            // Banner & Quick Replies Content
+            if (currentRole === 'guru') {
+                roleBanner.innerHTML = `<span><i class="fa-solid fa-chalkboard-user mr-1"></i> Mode <strong>Guru</strong>: Input & kelola observasi siswa.</span><span class="text-slate-400">${reportData.date}</span>`;
+                quickReplies.innerHTML = `
+                    <button onclick="processAction('lihat_laporan_guru')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-full border border-indigo-200 transition-colors">📄 Lihat Input Observasi</button>
+                    <button onclick="processAction('kirim_ke_psikolog')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-full border border-indigo-200 transition-colors">➡️ Teruskan ke Psikolog</button>
+                `;
+            } else if (currentRole === 'psikolog') {
+                roleBanner.innerHTML = `<span><i class="fa-solid fa-user-doctor mr-1"></i> Mode <strong>Psikolog</strong>: Analisis klinis & rekomendasi intervensi.</span><span class="text-slate-400">${reportData.date}</span>`;
+                quickReplies.innerHTML = `
+                    <button onclick="processAction('analisis_psikolog')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-full border border-indigo-200 transition-colors">📊 Hasil Analisis Psikologi</button>
+                    <button onclick="processAction('rekomendasi_psikolog')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-full border border-indigo-200 transition-colors">💡 Rekomendasi Terapi/Latihan</button>
+                    <button onclick="processAction('kirim_ke_ortu')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-full border border-indigo-200 transition-colors">📩 Teruskan ke Orang Tua</button>
+                `;
+            } else {
+                roleBanner.innerHTML = `<span><i class="fa-solid fa-house-chimney-user mr-1"></i> Mode <strong>Orang Tua</strong>: Laporan perkembangan gabungan.</span><span class="text-slate-400">${reportData.date}</span>`;
+                quickReplies.innerHTML = `
+                    <button onclick="processAction('rangkuman_ortu')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-full border border-indigo-200 transition-colors">📌 Rangkuman Perkembangan Zidan</button>
+                    <button onclick="processAction('latihan_di_rumah')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-full border border-indigo-200 transition-colors">🏠 Saran Latihan di Rumah</button>
+                `;
+            }
+        }
+
+        function switchRole(role) {
+            currentRole = role;
+            initChat();
+        }
+
+        function scrollToBottom() {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function appendUserMessage(text) {
+            const msgHTML = `
+                <div class="flex items-start gap-2.5 justify-end">
+                    <div class="bg-indigo-600 text-white p-3.5 rounded-2xl rounded-tr-none shadow-sm max-w-[85%] text-sm">
+                        ${text}
+                    </div>
+                </div>
+            `;
+            chatBox.insertAdjacentHTML('beforeend', msgHTML);
+            scrollToBottom();
+        }
+
+        function appendBotMessage(text, senderLabel = "System") {
+            const msgHTML = `
+                <div class="flex items-start gap-2.5">
+                    <div class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs shrink-0 font-bold">
+                        ${senderLabel.substring(0,2)}
+                    </div>
+                    <div class="bg-white p-3.5 rounded-2xl rounded-tl-none shadow-sm max-w-[85%] text-slate-800 text-sm space-y-2 border border-slate-100">
+                        ${text}
+                    </div>
+                </div>
+            `;
+            chatBox.insertAdjacentHTML('beforeend', msgHTML);
+            scrollToBottom();
+        }
+
+        function showTypingIndicator() {
+            const indicatorHTML = `
+                <div id="typingIndicator" class="flex items-start gap-2.5">
+                    <div class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs shrink-0 font-bold">
+                        AI
+                    </div>
+                    <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm text-slate-400 text-xs flex gap-1 items-center">
+                        <span class="animate-bounce">●</span>
+                        <span class="animate-bounce delay-100">●</span>
+                        <span class="animate-bounce delay-200">●</span>
+                    </div>
+                </div>
+            `;
+            chatBox.insertAdjacentHTML('beforeend', indicatorHTML);
+            scrollToBottom();
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) indicator.remove();
+        }
+
+        function processAction(action) {
+            showTypingIndicator();
+            setTimeout(() => {
+                removeTypingIndicator();
+
+                if (action === 'lihat_laporan_guru') {
+                    appendBotMessage(`
+                        <strong>📝 Observasi Harian (Input Coach/Guru):</strong><br><br>
+                        • <strong>Kepatuhan & Ketenangan:</strong> ${reportData.guruInput.kepatuhan}<br><br>
+                        • <strong>Kefokusan & Kontak Mata:</strong> ${reportData.guruInput.fokus}<br><br>
+                        • <strong>Kognitif & Motorik:</strong> ${reportData.guruInput.kognitif} ${reportData.guruInput.motorik}<br><br>
+                        • <strong>Komunikasi & Interaksi:</strong> ${reportData.guruInput.komunikasi}
+                    `, 'Guru');
+                } else if (action === 'kirim_ke_psikolog') {
+                    appendBotMessage(`
+                        ✅ <strong>Laporan Berhasil Diteruskan!</strong><br>
+                        Data observasi harian Zidan telah terkirim ke Tim Psikolog untuk dianalisis lebih lanjut. Silakan ganti role ke <strong>Psikolog</strong> di bagian header atas.
+                    `, 'Guru');
+                } else if (action === 'analisis_psikolog') {
+                    appendBotMessage(`
+                        <strong>🧠 Analisis Psikolog:</strong><br><br>
+                        ${reportData.psikologAnalysis.ringkasan}
+                    `, 'Psikolog');
+                } else if (action === 'rekomendasi_psikolog') {
+                    const list = reportData.psikologAnalysis.rekomendasi.map((item, i) => `<li class="ml-4 list-disc">${item}</li>`).join('');
+                    appendBotMessage(`
+                        <strong>💡 Rekomendasi Intervensi Psikolog:</strong><br><br>
+                        <ul class="space-y-1.5">${list}</ul>
+                    `, 'Psikolog');
+                } else if (action === 'kirim_ke_ortu') {
+                    appendBotMessage(`
+                        📩 <strong>Laporan & Analisis Telah Diteruskan ke Orang Tua!</strong><br>
+                        Orang tua kini dapat mengakses ringkasan laporan beserta saran latihan di rumah. Silakan ganti role ke <strong>Orang Tua</strong> untuk melihat tampilannya.
+                    `, 'Psikolog');
+                } else if (action === 'rangkuman_ortu') {
+                    appendBotMessage(`
+                        <strong>📌 Laporan Perkembangan Zidan (${reportData.date}):</strong><br><br>
+                        🌟 <strong>Kelebihan Hari Ini:</strong><br>
+                        • Mampu menyelesaikan kegiatan dengan tenang dan mengikuti instruksi coach.<br>
+                        • Fokus bertahan cukup lama dan kontak mata cukup konsisten.<br>
+                        • Mampu memahami pertanyaan kartu dan merangkai kalimat dengan baik.<br><br>
+                        🌱 <strong>Hal yang Sedang Ditingkatkan:</strong><br>
+                        • Pengendalian diri agar tidak terburu-buru saat menjawab.<br>
+                        • Keseimbangan tubuh dan respon verbal langsung tanpa mengulang pertanyaan.
+                    `, 'Orang Tua');
+                } else if (action === 'latihan_di_rumah') {
+                    appendBotMessage(`
+                        <strong>🏠 Rekomendasi Kegiatan di Rumah untuk Bapak/Ibu:</strong><br><br>
+                        1. 🏃‍♂️ <strong>Keseimbangan Tubuh:</strong> Ajak Zidan bermain berjalan di atas garis lurus/papan titian di rumah.<br>
+                        2. 🧘‍♀️ <strong>Latihan Ketenangan:</strong> Saat Zidan terburu-buru menjawab, bimbing dia ambil napas dalam 1-2 detik sebelum berbicara.<br>
+                        3. 💬 <strong>Komunikasi:</strong> Berikan jeda saat bertanya agar Zidan fokus pada jawaban tanpa mengulangi pertanyaan Bapak/Ibu.
+                    `, 'Orang Tua');
+                }
+            }, 400);
+        }
+
+        function handleSend(e) {
+            e.preventDefault();
+            const text = userInput.value.trim();
+            if (!text) return;
+            
+            userInput.value = '';
+            appendUserMessage(text);
+            showTypingIndicator();
+
+            setTimeout(() => {
+                removeTypingIndicator();
+                const q = text.toLowerCase();
+
+                if (currentRole === 'guru') {
+                    appendBotMessage(`Catatan guru ditambahkan: "${text}". Data berhasil disimpan dalam sistem observasi.`, 'Guru');
+                } else if (currentRole === 'psikolog') {
+                    appendBotMessage(`Analisis kustom ditambahkan untuk input: "${text}". Rekomendasi intervensi telah diperbarui.`, 'Psikolog');
+                } else {
+                    appendBotMessage(`Terima kasih atas pertanyaannya Bapak/Ibu. Mengenai "${text}", Zidan hari ini secara umum menunjukkan progres positif, terutama pada kemampuan merangkai kalimat dan pemahaman instruksi.`, 'Orang Tua');
+                }
+            }, 500);
+        }
+
+        // Initialize on Load
+        initChat();
+    </script>
+</body>
+</html>
