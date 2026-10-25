@@ -1,0 +1,20 @@
+{
+  "name": "Meuseuraya Inklusi",
+  "short_name": "Meuseuraya",
+  "description": "Prototipe kolaborasi guru, orang tua, dan psikolog.",
+  "lang": "id",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f5faf8",
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
