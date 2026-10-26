@@ -19,3 +19,14 @@
 @media(max-width:680px){.role-cards{grid-template-columns:1fr}.role-choice{min-height:0}.topbar{align-items:flex-start}.top-actions{flex-direction:column;align-items:stretch}.top-actions .button{font-size:12px}.workspace-heading{align-items:flex-start}.data-actions{flex-direction:column}.data-actions .button{width:100%}}
 
 .brand-icon{overflow:hidden;padding:0;background:transparent;border-radius:12px}.brand-icon img{width:100%;height:100%;object-fit:cover;display:block}
+
+.workflow-overview{margin-top:28px;padding:22px;background:#fff;border:1px solid var(--line);border-radius:18px}
+.flow-steps{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.flow-step{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;min-width:90px;flex:1}
+.flow-icon{display:grid;place-items:center;width:54px;height:54px;border-radius:50%;font-size:25px;border:2px solid #d6e8e2}
+.flow-icon.blue{background:#eaf2ff}.flow-icon.gold{background:#fff6d9}.flow-icon.green{background:#eaf7df}.flow-icon.orange{background:#fff0df}
+.flow-step strong{font-size:14px}.flow-step small{font-size:11px;color:var(--muted)}.flow-arrow{font-size:24px;color:var(--teal);font-weight:800}
+.parent-step{margin-top:12px;flex-basis:100%;border-top:1px dashed var(--line);padding-top:14px}
+.flow-caption{font-size:13px;color:var(--muted);margin:16px 0 0}.flow-events{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:14px;margin-top:14px;border-top:1px solid var(--line);font-size:12px}.flow-events span{color:var(--muted);flex:1}
+.workflow-panel{margin-top:20px}.flow-list{display:grid;gap:10px}.flow-item{border:1px solid var(--line);background:#fbfefd;padding:14px;border-radius:12px}.flow-item-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12px}.flow-item time,.flow-item small{color:var(--muted);font-size:11px}.flow-type{display:inline-block;margin-top:8px;padding:3px 8px;border-radius:20px;background:var(--mint);color:var(--dark);font-size:11px;font-weight:800}.flow-item p{font-size:14px;white-space:pre-wrap;margin:8px 0}
+@media(max-width:600px){.workflow-overview{padding:16px}.flow-step{min-width:70px}.flow-arrow{font-size:18px}.flow-icon{width:46px;height:46px}.flow-events{align-items:flex-start;flex-direction:column}.flow-events .button{width:100%}}
