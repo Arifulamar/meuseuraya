@@ -28,6 +28,17 @@
         <div class="offline"><span class="dot"></span><span id="homeConnectionStatus">Memeriksa koneksi…</span><span>• Data disimpan di perangkat ini</span></div>
       </section>
 
+      <section class="workflow-overview">
+        <div class="section-title"><div><p class="eyebrow">ALUR KERJA TRIADIK</p><h2>Kolaborasi untuk anak</h2></div></div>
+        <div class="flow-steps">
+          <div class="flow-step"><span class="flow-icon blue">📘</span><strong>Guru</strong><small>Catatan sekolah</small></div><span class="flow-arrow">↔</span>
+          <div class="flow-step"><span class="flow-icon gold">❤️</span><strong>Anak</strong><small>Tujuan bersama</small></div><span class="flow-arrow">↔</span>
+          <div class="flow-step"><span class="flow-icon green">🧠</span><strong>Psikolog</strong><small>Rekomendasi</small></div>
+          <div class="flow-step parent-step"><span class="flow-icon orange">🏡</span><strong>Orang Tua</strong><small>Aktivitas di rumah</small></div>
+        </div>
+        <p class="flow-caption">Guru dan orang tua berbagi catatan yang diizinkan; psikolog dapat memberi rekomendasi. Semua pihak mendukung perkembangan anak secara konsisten dan inklusif.</p>
+        <div class="flow-events"><strong>Aktivitas alur kerja di perangkat ini</strong><span id="homeFlowCount">Belum ada aktivitas</span><button class="button outline" id="viewFlowBtn" type="button">Lihat aktivitas</button></div>
+      </section>
       <section class="role-section">
         <div class="section-title"><div><p class="eyebrow">RUANG KERJA</p><h2>Anda ingin masuk sebagai siapa?</h2></div></div>
         <div class="role-cards">
@@ -72,6 +83,20 @@
         </form>
       </section>
 
+      <section class="workflow-panel role-card">
+        <div class="section-title"><div><p class="eyebrow">KIRIM DATA / REKOMENDASI</p><h2>Teruskan informasi</h2></div></div>
+        <p class="muted small">Catat aktivitas kolaborasi lokal untuk peran lain. Pada versi ini aktivitas hanya tersimpan di perangkat ini dan belum mengirim notifikasi sungguhan.</p>
+        <form id="workflowForm">
+          <label for="flowRecipient">Teruskan kepada</label><select id="flowRecipient" required></select>
+          <label for="flowType">Jenis aktivitas</label><select id="flowType"><option>Kirim data</option><option>Permintaan rekomendasi</option><option>Rekomendasi</option><option>Notifikasi tindak lanjut</option></select>
+          <label for="flowMessage">Ringkasan informasi</label><textarea id="flowMessage" rows="3" maxlength="800" placeholder="Tulis ringkasan, gunakan data simulasi…" required></textarea>
+          <div class="form-footer"><small>Hindari data sensitif. Ini bukan pengiriman antar akun.</small><button class="button primary" type="submit">Catat aktivitas</button></div><p id="flowFormMessage" class="form-message" role="status"></p>
+        </form>
+      </section>
+      <section class="workflow-panel role-card">
+        <div class="section-title"><div><p class="eyebrow">JEJAK KOLABORASI</p><h2>Aktivitas triadik</h2></div><span class="count" id="flowCount">0 aktivitas</span></div>
+        <div id="flowList" class="flow-list"></div><div id="flowEmpty" class="empty">Belum ada aktivitas kolaborasi di perangkat ini.</div>
+      </section>
       <section class="notes-section">
         <div class="section-title"><div><p class="eyebrow">RIWAYAT PERAN INI</p><h2>Catatan saya</h2></div><span class="count" id="noteCount">0 catatan</span></div>
         <p class="muted small">Daftar ini hanya menampilkan catatan untuk peran yang sedang dibuka, pada perangkat ini.</p>
