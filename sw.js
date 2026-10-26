@@ -1,4 +1,4 @@
-const CACHE = 'meuseuraya-inklusi-root-v6';
+const CACHE = 'meuseuraya-inklusi-root-v7';
 const BASE_URL = new URL('./', self.registration.scope);
 const INDEX_URL = new URL('index.html', BASE_URL).href;
 const ASSETS = [
@@ -6,6 +6,7 @@ const ASSETS = [
   INDEX_URL,
   new URL('styles.css', BASE_URL).href,
   new URL('app.js', BASE_URL).href,
+  new URL('supabase-config.js', BASE_URL).href,
   new URL('manifest.webmanifest', BASE_URL).href,
   new URL('icon.svg', BASE_URL).href
 ];
