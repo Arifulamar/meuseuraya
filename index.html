@@ -15,12 +15,26 @@
     <div class="brand"><div class="brand-icon"><img src="./icon.svg" alt="Logo Meuseuraya Inklusi"></div><div><strong>Meuseuraya Inklusi</strong><small>Kolaborasi • Tumbuh • Inklusif</small></div></div>
     <div class="top-actions">
       <button id="homeBtn" class="button outline hidden" type="button">← Menu utama</button>
+      <span id="signedInLabel" class="muted small hidden"></span><button id="logoutTopBtn" class="button outline hidden" type="button">Keluar</button>
       <button id="installBtn" class="button light hidden" type="button">Pasang aplikasi</button>
     </div>
   </header>
 
   <main class="wrap">
-    <section id="homeView">
+    <section id="authView" class="role-card auth-card">
+      <p class="eyebrow">AKUN MEUSEURAYA</p>
+      <h1>Masuk ke akun Anda</h1>
+      <p class="muted">Gunakan email dan kata sandi akun Supabase yang telah dibuat. Login memerlukan koneksi internet.</p>
+      <form id="loginForm">
+        <label for="loginEmail">Email</label>
+        <input id="loginEmail" type="email" autocomplete="username" required>
+        <label for="loginPassword">Kata sandi</label>
+        <input id="loginPassword" type="password" autocomplete="current-password" required>
+        <div class="form-footer"><small id="authMessage" role="status">Sesi belum diperiksa.</small><button class="button primary" id="loginButton" type="submit">Masuk</button></div>
+      </form>
+      <button id="logoutBtn" class="button outline hidden" type="button">Keluar</button>
+    </section>
+    <section id="homeView" class="hidden">
       <section class="welcome">
         <p class="eyebrow">PROTOTIPE · DATA SIMULASI</p>
         <h1>Kolaborasi kecil, dampak besar.</h1>
@@ -83,6 +97,8 @@
     </section>
     <footer>Meuseuraya Inklusi · Prototipe uji alur kerja · v1.1</footer>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./supabase-config.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
