@@ -17,3 +17,5 @@
 .data-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 .data-actions .button{flex:1}
 @media(max-width:680px){.role-cards{grid-template-columns:1fr}.role-choice{min-height:0}.topbar{align-items:flex-start}.top-actions{flex-direction:column;align-items:stretch}.top-actions .button{font-size:12px}.workspace-heading{align-items:flex-start}.data-actions{flex-direction:column}.data-actions .button{width:100%}}
+
+.brand-icon{overflow:hidden;padding:0;background:transparent;border-radius:12px}.brand-icon img{width:100%;height:100%;object-fit:cover;display:block}
