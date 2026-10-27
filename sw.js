@@ -1,4 +1,4 @@
-const CACHE = 'meuseuraya-inklusi-root-v8';
+const CACHE = 'meuseuraya-inklusi-root-v9';
 const BASE_URL = new URL('./', self.registration.scope);
 const INDEX_URL = new URL('index.html', BASE_URL).href;
 const ASSETS = [
