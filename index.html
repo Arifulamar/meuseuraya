@@ -15,7 +15,7 @@
     <div class="brand"><div class="brand-icon"><img src="./icon.svg" alt="Logo Meuseuraya Inklusi"></div><div><strong>Meuseuraya Inklusi</strong><small>Kolaborasi • Tumbuh • Inklusif</small></div></div>
     <div class="top-actions">
       <button id="homeBtn" class="button outline hidden" type="button">← Menu utama</button>
-      <span id="signedInLabel" class="muted small hidden"></span><button id="logoutTopBtn" class="button outline hidden" type="button">Keluar</button>
+      <span id="signedInLabel" class="muted small hidden"></span><div id="notificationWrap" class="notification-wrap hidden"><button id="notificationBell" class="button outline" type="button" aria-label="Buka notifikasi">🔔 <span id="notificationCount" class="notification-count hidden">0</span></button><div id="notificationPanel" class="notification-panel"><strong>Notifikasi</strong><div id="notificationList"><p class="muted small">Belum ada notifikasi.</p></div></div></div><button id="logoutTopBtn" class="button outline hidden" type="button">Keluar</button>
       <button id="installBtn" class="button light hidden" type="button">Pasang aplikasi</button>
     </div>
   </header>
@@ -39,7 +39,7 @@
         <p class="eyebrow">PROTOTIPE · DATA SIMULASI</p>
         <h1>Kolaborasi kecil, dampak besar.</h1>
         <p>Pilih ruang kerja sesuai peran Anda. Setiap peran memiliki tampilan dan daftar catatan tersendiri.</p>
-        <div class="offline"><span class="dot"></span><span id="homeConnectionStatus">Memeriksa koneksi…</span><span>• Data disimpan di perangkat ini</span></div>
+        <div class="offline"><span class="dot"></span><span id="homeConnectionStatus">Memeriksa koneksi…</span><span>• Data dan notifikasi melalui Supabase</span></div>
       </section>
 
       <section class="role-section">
@@ -60,7 +60,7 @@
         </div>
       </section>
 
-      <section class="privacy"><span class="privacy-icon">🔒</span><div><strong>Catatan privasi</strong><p>Ini masih prototipe tanpa login atau pembatasan akses. Pemisahan tampilan bukan pengamanan akun. Gunakan data simulasi saja, jangan masukkan identitas atau informasi sensitif siswa.</p></div></section>
+      <section class="privacy"><span class="privacy-icon">🔒</span><div><strong>Catatan privasi</strong><p>Prototipe masih dalam pengujian. Gunakan data simulasi saja; jangan masukkan identitas atau informasi sensitif siswa.</p></div></section>
     </section>
 
     <section id="workspaceView" class="hidden">
@@ -68,7 +68,7 @@
         <div><p id="roleKicker" class="eyebrow">RUANG KERJA</p><h1 id="roleTitle">Ruang Guru</h1><p id="roleDescription" class="muted"></p></div>
         <span id="roleIcon" class="role-icon">📘</span>
       </section>
-      <div class="offline workspace-status"><span class="dot"></span><span id="connectionStatus">Memeriksa koneksi…</span><span>• Catatan disimpan di perangkat ini</span></div>
+      <div class="offline workspace-status"><span class="dot"></span><span id="connectionStatus">Memeriksa koneksi…</span><span>• Catatan tersinkron melalui Supabase</span></div>
 
       <section class="student-panel">
         <div><label for="studentSelect">Siswa simulasi</label><select id="studentSelect"></select></div>
@@ -88,14 +88,14 @@
 
       <section class="notes-section">
         <div class="section-title"><div><p class="eyebrow">RIWAYAT PERAN INI</p><h2>Catatan saya</h2></div><span class="count" id="noteCount">0 catatan</span></div>
-        <p class="muted small">Daftar ini hanya menampilkan catatan untuk peran yang sedang dibuka, pada perangkat ini.</p>
+        <p class="muted small">Daftar ini menampilkan catatan cloud untuk anak yang ditugaskan kepada akun Anda.</p>
         <div id="notesList" class="notes-list"></div>
         <div id="emptyState" class="empty"><span>🗂️</span><strong>Belum ada catatan</strong><p>Catatan untuk ruang ini akan tampil di sini.</p></div>
         <div class="data-actions"><button id="exportBtn" class="button outline" type="button">Ekspor JSON</button><button id="clearBtn" class="button danger-outline" type="button">Hapus catatan peran ini</button></div>
       </section>
-      <section class="privacy"><span class="privacy-icon">🔒</span><div><strong>Privasi dan keselamatan anak</strong><p>Pemilihan ruang hanya memisahkan tampilan, bukan autentikasi. Siapa pun yang membuka aplikasi di perangkat ini masih dapat memilih peran lain. Jangan gunakan data siswa nyata sebelum kontrol akses, enkripsi, dan persetujuan yang sesuai tersedia.</p></div></section>
+      <section class="privacy"><span class="privacy-icon">🔒</span><div><strong>Privasi dan keselamatan anak</strong><p>Akses data bergantung pada penugasan Supabase dan kebijakan RLS. Gunakan data simulasi sampai pengujian akses dan privasi selesai.</p></div></section>
     </section>
-    <footer>Meuseuraya Inklusi · Prototipe uji alur kerja · v1.1</footer>
+    <footer>Meuseuraya Inklusi · Prototipe uji alur kerja · v1.2</footer>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./supabase-config.js"></script>
