@@ -20,13 +20,43 @@ function escapeHtml(s) {
 }
 function student() { return $('studentSelect').value; }
 async function loadChildren() {
-  const { data, error } = await supabaseClient.from('child_memberships')
-    .select('child_id,children(id,display_label,class_label)')
-    .eq('user_id', signedInUser.id).eq('can_read', true);
-  if (error) throw error;
-  cloudChildren = (data || []).map(row => row.children).filter(Boolean);
-  $('studentSelect').innerHTML = cloudChildren.map(c => '<option value="' + escapeHtml(c.id) + '">' + escapeHtml(c.display_label) + '</option>').join('');
-  if (!cloudChildren.length) $('studentSelect').innerHTML = '<option value="">Belum ada penugasan siswa</option>';
+  const select = $('studentSelect');
+  select.innerHTML = '<option value="">Memuat siswa…</option>';
+  const { data: memberships, error: membershipError } = await supabaseClient
+    .from('child_memberships')
+    .select('child_id')
+    .eq('user_id', signedInUser.id)
+    .eq('can_read', true);
+  if (membershipError) throw membershipError;
+
+  const childIds = [...new Set((memberships || []).map(row => row.child_id).filter(Boolean))];
+  if (!childIds.length) {
+    cloudChildren = [];
+    select.innerHTML = '<option value="">Belum ada penugasan siswa</option>';
+    $('studentName').textContent = 'Belum ada penugasan';
+    $('studentMeta').textContent = 'Akun ini belum ditugaskan ke anak simulasi.';
+    $('studentAvatar').textContent = '?';
+    return;
+  }
+
+  const { data: children, error: childrenError } = await supabaseClient
+    .from('children')
+    .select('id,display_label,class_label')
+    .in('id', childIds)
+    .is('archived_at', null)
+    .order('display_label');
+  if (childrenError) throw childrenError;
+
+  cloudChildren = children || [];
+  const previous = select.value;
+  select.innerHTML = cloudChildren.map(c => '<option value="' + escapeHtml(c.id) + '">' + escapeHtml(c.display_label) + '</option>').join('');
+  if (cloudChildren.some(c => c.id === previous)) select.value = previous;
+  if (!cloudChildren.length) {
+    select.innerHTML = '<option value="">Data siswa belum dapat diakses</option>';
+    $('studentName').textContent = 'Data siswa belum dapat diakses';
+    $('studentMeta').textContent = 'Periksa penugasan dan kebijakan akses Supabase.';
+    $('studentAvatar').textContent = '?';
+  }
 }
 async function loadCloudNotes() {
   if (!student()) { cloudNotes = []; render(); return; }
