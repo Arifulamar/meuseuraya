@@ -266,7 +266,7 @@ function showSignedIn() {
   $('loginForm').classList.add('hidden');
   $('logoutBtn').classList.remove('hidden');
   setAuthMessage('Berhasil masuk. Peran akun: ' + signedInProfile.role + '.');
-  Promise.all([loadChildren(), loadNotifications()]).then(() => startNotificationRealtime()).catch(error => { console.error(error); setAuthMessage('Login berhasil, tetapi data belum bisa dimuat: ' + error.message); });
+  Promise.all([loadChildren(), loadNotifications()]).then(() => startNotificationRealtime()).catch(error => { console.error(error); const message = error?.message || 'Kesalahan tidak diketahui'; const select = $('studentSelect'); if (select && select.innerHTML.includes('Memuat siswa')) select.innerHTML = '<option value="">Gagal memuat siswa</option>'; if ($('studentMeta')) $('studentMeta').textContent = 'Gagal memuat data: ' + message; setAuthMessage('Login berhasil, tetapi data belum bisa dimuat: ' + message); });
 }
 async function loadProfile(user) {
   const { data, error } = await supabaseClient.from('profiles').select('id,display_name,role').eq('id', user.id).single();
