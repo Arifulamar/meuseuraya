@@ -70,6 +70,7 @@ function renderNotifications() {
     $('notificationPanel').classList.remove('open');
   }));
 }
+if ($('notificationBell')) $('notificationBell').addEventListener('click', () => $('notificationPanel').classList.toggle('open'));
 async function startNotificationRealtime() {
   if (notificationChannel) await supabaseClient.removeChannel(notificationChannel);
   notificationChannel = supabaseClient.channel('meuseuraya-notifications-' + signedInUser.id)
@@ -97,6 +98,7 @@ function openRole(next) {
   $('category').innerHTML = r.categories.map(c => '<option>' + escapeHtml(c) + '</option>').join('');
   $('formMessage').textContent = '';
   render();
+  if (supabaseClient && signedInUser) loadCloudNotes().catch(error => { $('formMessage').textContent = 'Gagal memuat catatan: ' + error.message; });
   window.scrollTo(0, 0);
 }
 function goHome() {
@@ -210,6 +212,7 @@ function showAuthOnly() {
   $('homeBtn').classList.add('hidden');
   $('logoutTopBtn').classList.add('hidden');
   $('signedInLabel').classList.add('hidden');
+  $('notificationWrap').classList.add('hidden');
 }
 function showSignedIn() {
   $('authView').classList.add('hidden');
@@ -217,6 +220,7 @@ function showSignedIn() {
   $('signedInLabel').textContent = signedInUser.email || 'Akun aktif';
   $('signedInLabel').classList.remove('hidden');
   $('logoutTopBtn').classList.remove('hidden');
+  $('notificationWrap').classList.remove('hidden');
   // Display only the workspace matching the profile role; role assignment is not user-editable.
   document.querySelectorAll('[data-open-role]').forEach(btn => {
     btn.classList.toggle('hidden', btn.dataset.openRole !== signedInProfile?.role);
