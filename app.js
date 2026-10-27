@@ -19,6 +19,66 @@ function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function student() { return $('studentSelect').value; }
+async function loadChildren() {
+  const { data, error } = await supabaseClient.from('child_memberships')
+    .select('child_id,children(id,display_label,class_label)')
+    .eq('user_id', signedInUser.id).eq('can_read', true);
+  if (error) throw error;
+  cloudChildren = (data || []).map(row => row.children).filter(Boolean);
+  $('studentSelect').innerHTML = cloudChildren.map(c => '<option value="' + escapeHtml(c.id) + '">' + escapeHtml(c.display_label) + '</option>').join('');
+  if (!cloudChildren.length) $('studentSelect').innerHTML = '<option value="">Belum ada penugasan siswa</option>';
+}
+async function loadCloudNotes() {
+  if (!student()) { cloudNotes = []; render(); return; }
+  const { data, error } = await supabaseClient.from('notes')
+    .select('id,child_id,author_id,kind,title,body,next_step,created_at')
+    .eq('child_id', student()).is('deleted_at', null).order('created_at', {ascending:false});
+  if (error) throw error;
+  cloudNotes = data || [];
+  render();
+}
+async function loadNotifications() {
+  const { data, error } = await supabaseClient.from('notifications')
+    .select('id,recipient_id,child_id,title,message,related_note_id,read_at,created_at')
+    .eq('recipient_id', signedInUser.id).order('created_at', {ascending:false}).limit(50);
+  if (error) throw error;
+  notificationItems = data || [];
+  renderNotifications();
+}
+function renderNotifications() {
+  const badge = $('notificationCount'), list = $('notificationList');
+  if (!badge || !list) return;
+  const unread = notificationItems.filter(n => !n.read_at).length;
+  badge.textContent = unread > 99 ? '99+' : String(unread);
+  badge.classList.toggle('hidden', unread === 0);
+  list.innerHTML = notificationItems.length ? notificationItems.map(n =>
+    '<button type="button" class="notification-item ' + (n.read_at ? '' : 'unread') + '" data-notification-id="' + escapeHtml(n.id) + '"><strong>' + escapeHtml(n.title) + '</strong><span>' + escapeHtml(n.message) + '</span><small>' + escapeHtml(new Date(n.created_at).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'})) + '</small></button>'
+  ).join('') : '<p class="muted small">Belum ada notifikasi.</p>';
+  list.querySelectorAll('[data-notification-id]').forEach(button => button.addEventListener('click', async () => {
+    const item = notificationItems.find(n => n.id === button.dataset.notificationId);
+    if (!item) return;
+    if (!item.read_at) {
+      const now = new Date().toISOString();
+      const { error } = await supabaseClient.from('notifications').update({read_at:now}).eq('id',item.id).eq('recipient_id',signedInUser.id);
+      if (error) { setAuthMessage('Gagal menandai notifikasi: ' + error.message); return; }
+      item.read_at = now; renderNotifications();
+    }
+    if (item.child_id && cloudChildren.some(c => c.id === item.child_id)) {
+      $('studentSelect').value = item.child_id;
+      if (role) { try { await loadCloudNotes(); } catch (e) { setAuthMessage('Gagal memuat catatan: ' + e.message); } }
+    }
+    $('notificationPanel').classList.remove('open');
+  }));
+}
+async function startNotificationRealtime() {
+  if (notificationChannel) await supabaseClient.removeChannel(notificationChannel);
+  notificationChannel = supabaseClient.channel('meuseuraya-notifications-' + signedInUser.id)
+    .on('postgres_changes', {event:'INSERT',schema:'public',table:'notifications',filter:'recipient_id=eq.' + signedInUser.id}, payload => {
+      notificationItems.unshift(payload.new);
+      notificationItems = notificationItems.slice(0,50);
+      renderNotifications();
+    }).subscribe();
+}
 function persist() {
   try { localStorage.setItem(KEY, JSON.stringify(records)); return true; }
   catch { return false; }
@@ -48,46 +108,54 @@ function goHome() {
 }
 function render() {
   const selected = student();
-  const s = students.find(x => x.id === selected) || students[0];
-  $('studentName').textContent = s.name;
-  $('studentMeta').textContent = s.meta;
-  $('studentAvatar').textContent = s.name[0];
-  const list = records.filter(n => n.studentId === selected && n.role === role).sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+  const s = cloudChildren.find(x => x.id === selected);
+  $('studentName').textContent = s?.display_label || 'Belum ada penugasan';
+  $('studentMeta').textContent = s ? (s.class_label || 'Anak yang ditugaskan') : 'Hubungi administrator untuk penugasan anak.';
+  $('studentAvatar').textContent = (s?.display_label || '?')[0];
+  const list = cloudNotes.filter(n => n.child_id === selected).sort((a,b) => b.created_at.localeCompare(a.created_at));
   $('noteCount').textContent = list.length + ' catatan';
   $('emptyState').style.display = list.length ? 'none' : 'block';
   $('notesList').innerHTML = list.map(n =>
-    '<article class="note"><div class="note-top"><span class="note-role">' + escapeHtml(roles[n.role]?.title || n.role) + ' · ' + escapeHtml(n.category) + '</span><time>' +
-    escapeHtml(new Date(n.createdAt).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'})) +
-    '</time></div><h3>' + escapeHtml(n.category) + '</h3><p>' + escapeHtml(n.text) + '</p>' +
-    (n.nextStep ? '<div class="next"><strong>Tindak lanjut</strong><p>' + escapeHtml(n.nextStep) + '</p></div>' : '') +
+    '<article class="note"><div class="note-top"><span class="note-role">' + escapeHtml(n.kind) + '</span><time>' +
+    escapeHtml(new Date(n.created_at).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'})) +
+    '</time></div><h3>' + escapeHtml(n.title) + '</h3><p>' + escapeHtml(n.body) + '</p>' +
+    (n.next_step ? '<div class="next"><strong>Tindak lanjut</strong><p>' + escapeHtml(n.next_step) + '</p></div>' : '') +
     '</article>'
   ).join('');
 }
-$('studentSelect').innerHTML = students.map(s => '<option value="' + s.id + '">' + escapeHtml(s.name) + '</option>').join('');
-$('studentSelect').addEventListener('change', render);
+$('studentSelect').addEventListener('change', async () => { try { await loadCloudNotes(); } catch (e) { $('formMessage').textContent = 'Gagal memuat catatan: ' + e.message; } });
 document.querySelectorAll('[data-open-role]').forEach(button => button.addEventListener('click', () => openRole(button.dataset.openRole)));
 $('homeBtn').addEventListener('click', goHome);
 
-$('noteForm').addEventListener('submit', e => {
+$('noteForm').addEventListener('submit', async e => {
   e.preventDefault();
-  const text = $('noteText').value.trim();
-  if (!text || !role) return;
-  const n = {id:Date.now().toString(),studentId:student(),role,category:$('category').value,text,nextStep:$('nextStep').value.trim(),createdAt:new Date().toISOString()};
-  records.push(n);
-  if (!persist()) {
-    records.pop();
-    $('formMessage').textContent = 'Penyimpanan gagal. Periksa ruang penyimpanan browser.';
+  const body = $('noteText').value.trim();
+  if (!body || !role || !signedInUser || !student()) {
+    $('formMessage').textContent = 'Pilih anak yang ditugaskan dan pastikan akun aktif.';
     return;
   }
-  $('noteText').value = '';
-  $('nextStep').value = '';
-  $('formMessage').textContent = 'Catatan disimpan di perangkat ini.';
-  render();
+  const button = $('noteForm').querySelector('button[type="submit"]');
+  button.disabled = true;
+  try {
+    const kind = role === 'orangtua' ? 'aktivitas_rumah' : role === 'psikolog' ? 'rekomendasi' : 'observasi';
+    const { data, error } = await supabaseClient.from('notes').insert({
+      child_id: student(), author_id: signedInUser.id, kind,
+      title: $('category').value, body, next_step: $('nextStep').value.trim() || null
+    }).select('id,child_id,author_id,kind,title,body,next_step,created_at').single();
+    if (error) throw error;
+    cloudNotes.unshift(data);
+    $('noteText').value = ''; $('nextStep').value = '';
+    $('formMessage').textContent = 'Catatan tersimpan di Supabase. Notifikasi dibuat otomatis untuk anggota yang ditugaskan.';
+    render();
+  } catch (error) {
+    console.error(error);
+    $('formMessage').textContent = 'Catatan belum tersimpan: ' + (error.message || 'periksa penugasan dan kebijakan akses.');
+  } finally { button.disabled = false; }
 });
 
 $('exportBtn').addEventListener('click', () => {
-  const roleRecords = records.filter(n => n.role === role);
-  const blob = new Blob([JSON.stringify({app:'Meuseuraya Inklusi Prototype',version:2,role,exportedAt:new Date().toISOString(),records:roleRecords},null,2)], {type:'application/json'});
+  const roleRecords = cloudNotes.filter(n => n.child_id === student());
+  const blob = new Blob([JSON.stringify({app:'Meuseuraya Inklusi',version:3,role,exportedAt:new Date().toISOString(),records:roleRecords},null,2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -99,20 +167,11 @@ $('exportBtn').addEventListener('click', () => {
 });
 
 $('clearBtn').addEventListener('click', () => {
-  if (!role || !confirm('Hapus semua catatan untuk ' + roles[role].title + ' di browser ini? Catatan peran lain tidak akan dihapus.')) return;
-  const previous = records;
-  records = records.filter(n => n.role !== role);
-  if (!persist()) {
-    records = previous;
-    $('formMessage').textContent = 'Penghapusan gagal karena penyimpanan browser bermasalah.';
-    return;
-  }
-  render();
-  $('formMessage').textContent = 'Catatan untuk ruang ini telah dihapus dari perangkat.';
+  $('formMessage').textContent = 'Penghapusan catatan cloud dinonaktifkan di prototipe untuk mencegah kehilangan data.';
 });
 
 function connection() {
-  const message = navigator.onLine ? 'Online · data tetap lokal' : 'Offline · aplikasi tetap dapat dibuka';
+  const message = navigator.onLine ? 'Online · data tersinkron melalui Supabase' : 'Offline · pengiriman catatan memerlukan internet';
   $('connectionStatus').textContent = message;
   $('homeConnectionStatus').textContent = message;
 }
@@ -139,6 +198,10 @@ connection();
 let supabaseClient = null;
 let signedInUser = null;
 let signedInProfile = null;
+let cloudChildren = [];
+let cloudNotes = [];
+let notificationItems = [];
+let notificationChannel = null;
 function setAuthMessage(message) { const el = $('authMessage'); if (el) el.textContent = message; }
 function showAuthOnly() {
   $('authView').classList.remove('hidden');
@@ -168,7 +231,8 @@ function showSignedIn() {
   }
   $('loginForm').classList.add('hidden');
   $('logoutBtn').classList.remove('hidden');
-  setAuthMessage('Berhasil masuk. Peran akun: ' + signedInProfile.role + '. Catatan masih disimpan lokal.');
+  setAuthMessage('Berhasil masuk. Peran akun: ' + signedInProfile.role + '.');
+  Promise.all([loadChildren(), loadNotifications()]).then(() => startNotificationRealtime()).catch(error => { console.error(error); setAuthMessage('Login berhasil, tetapi data belum bisa dimuat: ' + error.message); });
 }
 async function loadProfile(user) {
   const { data, error } = await supabaseClient.from('profiles').select('id,display_name,role').eq('id', user.id).single();
