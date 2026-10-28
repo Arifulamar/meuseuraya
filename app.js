@@ -152,10 +152,36 @@ function render() {
     escapeHtml(new Date(n.created_at).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'})) +
     '</time></div><h3>' + escapeHtml(n.title) + '</h3><p>' + escapeHtml(n.body) + '</p>' +
     (n.next_step ? '<div class="next"><strong>Tindak lanjut</strong><p>' + escapeHtml(n.next_step) + '</p></div>' : '') +
+    (n.author_id === signedInUser?.id ? '<div class="note-actions"><button type="button" class="delete-note-btn" data-delete-note="' + escapeHtml(n.id) + '">Hapus catatan</button></div>' : '') +
     '</article>'
   ).join('');
 }
 $('studentSelect').addEventListener('change', async () => { try { await loadCloudNotes(); } catch (e) { $('formMessage').textContent = 'Gagal memuat catatan: ' + e.message; } });
+$('notesList').addEventListener('click', async event => {
+  const button = event.target.closest('[data-delete-note]');
+  if (!button) return;
+  const noteId = button.dataset.deleteNote;
+  const note = cloudNotes.find(item => item.id === noteId);
+  if (!note || note.author_id !== signedInUser?.id) {
+    $('formMessage').textContent = 'Anda hanya dapat menghapus catatan yang Anda buat sendiri.';
+    return;
+  }
+  if (!window.confirm('Hapus catatan ini? Catatan akan disembunyikan dari daftar.')) return;
+  button.disabled = true;
+  try {
+    const { error } = await supabaseClient.from('notes')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', noteId).eq('author_id', signedInUser.id);
+    if (error) throw error;
+    cloudNotes = cloudNotes.filter(item => item.id !== noteId);
+    $('formMessage').textContent = 'Catatan berhasil dihapus dari tampilan.';
+    render();
+  } catch (error) {
+    console.error(error);
+    $('formMessage').textContent = 'Catatan belum dapat dihapus: ' + (error.message || 'periksa izin UPDATE dan kebijakan RLS.');
+    button.disabled = false;
+  }
+});
 document.querySelectorAll('[data-open-role]').forEach(button => button.addEventListener('click', () => openRole(button.dataset.openRole)));
 $('homeBtn').addEventListener('click', goHome);
 
@@ -198,8 +224,27 @@ $('exportBtn').addEventListener('click', () => {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
 
-$('clearBtn').addEventListener('click', () => {
-  $('formMessage').textContent = 'Penghapusan catatan cloud dinonaktifkan di prototipe untuk mencegah kehilangan data.';
+$('clearBtn').addEventListener('click', async () => {
+  const ownNotes = cloudNotes.filter(n => n.child_id === student() && n.author_id === signedInUser?.id);
+  if (!ownNotes.length) {
+    $('formMessage').textContent = 'Tidak ada catatan milik Anda yang dapat dihapus untuk siswa ini.';
+    return;
+  }
+  if (!window.confirm('Hapus ' + ownNotes.length + ' catatan yang Anda buat untuk siswa ini? Catatan akan disembunyikan dari daftar.')) return;
+  const button = $('clearBtn');
+  button.disabled = true;
+  try {
+    const { error } = await supabaseClient.from('notes')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('child_id', student()).eq('author_id', signedInUser.id).is('deleted_at', null);
+    if (error) throw error;
+    cloudNotes = cloudNotes.filter(n => !(n.child_id === student() && n.author_id === signedInUser.id));
+    $('formMessage').textContent = 'Catatan milik Anda untuk siswa ini berhasil dihapus dari tampilan.';
+    render();
+  } catch (error) {
+    console.error(error);
+    $('formMessage').textContent = 'Catatan belum dapat dihapus: ' + (error.message || 'periksa izin UPDATE dan kebijakan RLS.');
+  } finally { button.disabled = false; }
 });
 
 function connection() {
